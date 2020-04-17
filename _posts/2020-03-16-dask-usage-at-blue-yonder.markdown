@@ -15,7 +15,7 @@ author_profile: true
 Back in 2017, Blue Yonder started to look into 
 [Dask/Distributed](https://distributed.dask.org) and how we can leverage it to power
 our machine learning and data pipelines.
-In 2019, we have started to use it heavily in production for providing demand predicions,
+In 2019, we started to use it heavily in production for providing demand predicions,
 recommended order quantities, and price proposals to our customers.
 Time to take a a look at the way we are using Dask!
 
@@ -23,7 +23,7 @@ Time to take a a look at the way we are using Dask!
 
 First, let's have a look at the use cases we have for Dask. The use of Dask at Blue Yonder
 is strongly coupled to the concept of [Datasets](https://tech.jda.com/introducing-kartothek/),
-tabular data stored on blob storage. We use these datasets for storing everything that is needed
+tabular data stored in blob storage. We use these datasets for storing everything that is needed
 for generating predictions, recommended order quantities, and recommended prices for our customers,
 as well as the predictions, order quantities, and prices themselves.
 
@@ -32,7 +32,7 @@ as well as the predictions, order quantities, and prices themselves.
 One typical use case that we have is downloading large amounts of data from a database into a
 dataset. We use Dask/Distributed here as a means to parallelize the download and the graph is
 an extremely simple: a lot of parallel nodes downloading pieces of data into a blob and one
-reduction node writing the dataset metadata (basically a dictionary what data can be found in which blob).
+reduction node writing the dataset metadata (which is basically a dictionary what data can be found in which blob).
 
 ### Doing computations on a dataset
 
@@ -72,7 +72,7 @@ of upstream pull requests.
 
 ### Cluster separation
 
-We are running separate clusters for separate customers in order to isolate the customers from each other.
+We are running separate Dask clusters for separate customers in order to isolate the customers from each other.
 For the same reason, we also run separate clusters for production, staging, and development environments. 
 But it does not stop there. For performance reasons, we install the Python packages holding the code needed
  for the computations on each worker. Since the different components of our compute pipeline are implemented
@@ -80,8 +80,8 @@ and maintained as completely separate software packages whose requirements are n
 means we have to run a separate Dask cluster for each of the components. This leads to us operating more than
 ten Dask clusters per customer and environment, with most of the time, only one of the clusters being active
 and computing something. While this leads to overhead in terms of administration and hardware resouces,
-it also gives us a lot of flexibility. For instance, we can update the cluster of one part of the compute pipeline
-while another part of the pipeline is computing something on another cluster.
+it also gives us a lot of flexibility. For instance, we can update the software on the cluster of one part of the compute pipeline
+while another part of the pipeline is computing something on a different cluster.
 
 ### Some numbers
 
@@ -98,17 +98,14 @@ means it is really easy to commission or decommission Dask clusters and to add o
 an existing Dask cluster. At the moment, we are starting a migration from Mesos/Aurora towards 
 [Kubernetes](https://kubernetes.io/)
 
-
-### Resilience
-
-Running on top of a system like Mesos or Kubernetes provides us with resisience since a failing worker 
+Running on top of a system like Mesos or Kubernetes provides us with resilience since a failing worker 
 (for instance, as result of a failing hardware node)
-can simply be restarted on another node of the system.
-
-### Oversubscription and Autoscaling
+can simply be restarted on another node of the system. 
 
 Running 500 Dask clusters requires a lot of hardware. We have put two measures in place to improve
 the utilization of hardware resources: oversubscription and autoscaling.
+
+### Oversubscription
 
 [Oversubscription](http://mesos.apache.org/documentation/latest/oversubscription/) is a feature of Mesos
 that allows to allocate more resources than physically present to services running on the system.
@@ -118,17 +115,17 @@ in favor of critical ones.
 We use this to re-purpose the resources allocated for production clusters but not utilized the whole time
  and use them for development and staging systems.
 
+### Autoscaling
+
 Autoscaling is a mechanism we implemented to dynamically adapt the number of workers in a Dask cluster
-to the load on the cluster. We use the 
+to the load on the cluster. For this, we added the ``desired_workers`` metric to Distributed, which exposes
+the degree of parallelism that a computation has and allows us to infer how much workers a cluster should
+ideally have. Based on this metric, as well as on the overall resources available and on fairness criteria
+(remember, we run a lot of Dask/Distributed clusters), we add or remove workers to our clusters.
 
+Restarting failed workers for resilience and adding/removing workers for autoscaling requires that the Distributed
+cluster can cope with workers being removed and/or new instances being added. While this is a supported use case, 
+it appeared to us that this seemed not a widely used feature. By making heavy use of it, we were able to uncover
+some bugs and to submit the corresponding fixes.
 
-
-What's the setup, e.g.
-number of clusters
-sizes of the clusters
-dedicated clusters to separate requirement
-Running in Stratosphere
-proxies
-autoscaling
-What problems did we observe and how did we solve them
 
