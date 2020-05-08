@@ -110,7 +110,7 @@
   [Oversubscription](http://mesos.apache.org/documentation/latest/oversubscription/) is a feature of Mesos
   that allows allocating more resources than physically present to services running on the system.
   This is based on the assumption that not all services exhaust all of their allocated resources at the same time.
-  If the assumption is violated, classifying services into tiers allows to preempt less important services
+  If the assumption is violated, we prioritize the resouces to more important ones
   in favor of critical ones.
   We use this to re-purpose the resources allocated for production clusters but not utilized the whole time
   and use them for development and staging systems.
