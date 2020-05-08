@@ -59,7 +59,7 @@
   Our algorithms rely on source datasets that are partitioned in a particular way. It is not always
   the case that we have the data available in a suitable partitioning, for instance, if the data results
   from a computation that used a different partitioning. In this case, we have to repartition the data.
-  This works by reading the dataset as a Dask distributed dataframe (ddf), repartitioning the ddf using
+  This works by reading the dataset as a [Dask dataframe](https://docs.dask.org/en/latest/dataframe.html) repartitioning the dataframe using
   network shuffle, and writing it out again to a dataset.
 
   ## Dask cluster setup at Blue Yonder
