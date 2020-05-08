@@ -41,7 +41,7 @@
   a target dataset.
   In many cases, the layout of the source dataset (the partitioning, i.e., what data resides in which blob)
   is used for parallelization. This means the algorithms work independently on the individual
-  blobs of the source dataset. Therefore our respective Dask graphs again look very simple, with parallel nodes each performing
+  blobs of the source dataset. Therefore, our respective Dask graphs again look very simple, with parallel nodes each performing
   the sequential operations of reading in the data from a source dataset blob, doing some computation on it,
   and writing it out to a target dataset blob. Again, there is a final reduction node writing the target
   dataset metadata.
@@ -127,5 +127,4 @@
   cluster can cope with workers being removed and/or new instances being added. While this is a supported use case, 
   it appeared to us that this seemed not a widely used feature. By making heavy use of it, we were able to uncover
   some bugs and to submit the corresponding fixes.
-
 
